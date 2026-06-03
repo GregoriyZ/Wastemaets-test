@@ -1,0 +1,11 @@
+# Design tool artifacts — not needed in the repo
+assets/image-slot.js
+.image-slots.state.json
+wireframes/
+uploads/
+screenshots/
+*.thumbnail
+
+# OS
+.DS_Store
+Thumbs.db
