@@ -66,7 +66,7 @@
           </div>
         </div>
 
-        <form class="form" action="https://api.web3forms.com/submit" method="post" id="contact-form">
+        <form class="form" action="https://api.web3forms.com/submit" method="post" id="contact-form" novalidate>
           <h2 class="disp" style="font-size:30px;margin-bottom:6px;">Send an enquiry</h2>
           <p class="muted" style="margin-bottom:22px;">We usually reply within one business day.</p>
           <div id="form-success" style="display:none;background:var(--green);color:#0a1303;padding:14px 18px;margin-bottom:18px;font-weight:600;">Thanks — we'll be in touch soon!</div>
@@ -83,12 +83,12 @@
             <div class="field"><label for="c-suburb">Suburb</label><input id="c-suburb" type="text" name="suburb" placeholder="e.g. Brunswick" /><span class="field-err">Please enter your suburb.</span></div>
           </div>
           <div class="field">
-            <label>Preferred contact method</label>
-            <div class="pref-group">
-              <label class="pref-opt"><input type="radio" name="contact_preference" value="Call me back" /> Call me back</label>
-              <label class="pref-opt"><input type="radio" name="contact_preference" value="Email me back" /> Email me back</label>
-              <label class="pref-opt"><input type="radio" name="contact_preference" value="Either is fine" checked /> Either is fine</label>
-            </div>
+            <label for="c-pref">Preferred contact method</label>
+            <select id="c-pref" name="contact_preference">
+              <option value="Either is fine">Either is fine</option>
+              <option value="Call me back">Call me back</option>
+              <option value="Email me back">Email me back</option>
+            </select>
           </div>
           <div class="field"><label for="c-job">What's the job?</label>
             <select id="c-job" name="job"><option value="">Not sure — you tell me</option><option>Rubbish removal</option><option>Tenant clean out</option><option>Yard clean up</option><option>Light demolition</option><option>Deceased estate</option><option>Hard &amp; bulky waste</option></select>

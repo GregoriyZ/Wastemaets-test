@@ -48,48 +48,36 @@
   function bindFormValidation() {
     var forms = document.querySelectorAll('#contact-form, #pricing-form');
     forms.forEach(function (form) {
-      form.setAttribute('novalidate', '');
+
+      function checkField(name, isInvalid) {
+        var el = form.querySelector('[name="' + name + '"]');
+        if (!el) return;
+        var field = el.closest('.field');
+        var err = isInvalid(el.value.trim());
+        if (field) field.classList.toggle('field--error', err);
+        return err;
+      }
 
       form.addEventListener('submit', function (e) {
-        var valid = true;
+        var errors = [
+          checkField('name',    function (v) { return v === ''; }),
+          checkField('mobile',  function (v) { return !/^04\d{8}$/.test(v.replace(/[\s\-]/g, '')); }),
+          checkField('email',   function (v) { return v !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }),
+          checkField('suburb',  function (v) { return v === ''; }),
+          checkField('details', function (v) { return v === ''; })
+        ];
 
-        form.querySelectorAll('.field').forEach(function (field) {
-          var input = field.querySelector('input, textarea, select');
-          if (!input || input.type === 'hidden' || input.type === 'checkbox') return;
-
-          var val = input.value.trim();
-          var err = false;
-
-          if (input.name === 'name') {
-            err = val === '';
-          } else if (input.name === 'mobile') {
-            var digits = val.replace(/[\s\-]/g, '');
-            err = !/^04\d{8}$/.test(digits);
-          } else if (input.name === 'email') {
-            err = val !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
-          } else if (input.name === 'suburb') {
-            err = val === '';
-          } else if (input.name === 'job') {
-            err = val === '';
-          } else if (input.name === 'details') {
-            err = val === '';
-          }
-
-          field.classList.toggle('field--error', err);
-          if (err) valid = false;
-        });
-
-        if (!valid) {
+        if (errors.some(Boolean)) {
           e.preventDefault();
           var first = form.querySelector('.field--error input, .field--error textarea, .field--error select');
           if (first) first.focus();
         }
       });
 
-      // Clear error on a field as soon as the user edits it
-      form.querySelectorAll('.field input, .field textarea, .field select').forEach(function (input) {
-        input.addEventListener('input', function () {
-          var field = input.closest('.field');
+      // Clear a field's error as soon as the user edits it
+      form.querySelectorAll('[name="name"],[name="mobile"],[name="email"],[name="suburb"],[name="details"]').forEach(function (el) {
+        el.addEventListener('input', function () {
+          var field = el.closest('.field');
           if (field) field.classList.remove('field--error');
         });
       });

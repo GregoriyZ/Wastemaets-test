@@ -95,7 +95,7 @@
             <div><div class="lbl">Prefer to call?</div><div class="val">0494 013 254</div></div>
           </div>
         </div>
-        <form class="form" action="https://api.web3forms.com/submit" method="post" id="pricing-form">
+        <form class="form" action="https://api.web3forms.com/submit" method="post" id="pricing-form" novalidate>
           <div id="form-success" style="display:none;background:var(--green);color:#0a1303;padding:14px 18px;margin-bottom:18px;font-weight:600;">Thanks — we'll be in touch soon!</div>
           <input type="hidden" name="access_key" value="b8418392-b930-4b03-b1e9-31d8a847ab9c" />
           <input type="hidden" name="subject" value="New Enquiry — WasteMates Website" />
@@ -110,12 +110,12 @@
             <div class="field"><label for="p-suburb">Suburb</label><input id="p-suburb" type="text" name="suburb" placeholder="e.g. Brunswick" /><span class="field-err">Please enter your suburb.</span></div>
           </div>
           <div class="field">
-            <label>Preferred contact method</label>
-            <div class="pref-group">
-              <label class="pref-opt"><input type="radio" name="contact_preference" value="Call me back" /> Call me back</label>
-              <label class="pref-opt"><input type="radio" name="contact_preference" value="Email me back" /> Email me back</label>
-              <label class="pref-opt"><input type="radio" name="contact_preference" value="Either is fine" checked /> Either is fine</label>
-            </div>
+            <label for="p-pref">Preferred contact method</label>
+            <select id="p-pref" name="contact_preference">
+              <option value="Either is fine">Either is fine</option>
+              <option value="Call me back">Call me back</option>
+              <option value="Email me back">Email me back</option>
+            </select>
           </div>
           <div class="field"><label for="p-job">What's the job?</label>
             <select id="p-job" name="job"><option value="">Not sure — you tell me</option><option>Rubbish removal</option><option>Tenant clean out</option><option>Yard clean up</option><option>Light demolition</option><option>Deceased estate</option><option>Hard &amp; bulky waste</option></select>
