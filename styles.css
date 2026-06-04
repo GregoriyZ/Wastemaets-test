@@ -297,9 +297,6 @@ h3.disp{font-size:clamp(22px,2.4vw,30px);}
 }
 .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--green);}
 .field textarea{min-height:120px;resize:vertical;}
-.field--error input,.field--error textarea,.field--error select{border-color:#e05252;}
-.field-err{display:none;color:#e05252;font-size:12.5px;margin-top:5px;}
-.field--error .field-err{display:block;}
 
 /* ---------- responsive ---------- */
 @media(max-width:980px){

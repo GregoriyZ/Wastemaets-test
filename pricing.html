@@ -95,19 +95,19 @@
             <div><div class="lbl">Prefer to call?</div><div class="val">0494 013 254</div></div>
           </div>
         </div>
-        <form class="form" action="https://api.web3forms.com/submit" method="post" id="pricing-form" novalidate>
+        <form class="form" action="https://api.web3forms.com/submit" method="post" id="pricing-form">
           <div id="form-success" style="display:none;background:var(--green);color:#0a1303;padding:14px 18px;margin-bottom:18px;font-weight:600;">Thanks — we'll be in touch soon!</div>
           <input type="hidden" name="access_key" value="b8418392-b930-4b03-b1e9-31d8a847ab9c" />
           <input type="hidden" name="subject" value="New Enquiry — WasteMates Website" />
           <input type="hidden" name="redirect" value="https://wastemates.com.au/pricing.html?sent=1" />
           <div style="display:none"><input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" /></div>
           <div class="row">
-            <div class="field"><label for="p-name">Name</label><input id="p-name" type="text" name="name" placeholder="Your name" required /><span class="field-err">Please enter your name.</span></div>
-            <div class="field"><label for="p-mobile">Mobile</label><input id="p-mobile" type="tel" name="mobile" placeholder="04xx xxx xxx" required /><span class="field-err">Please enter a valid Australian mobile (e.g. 0412 345 678).</span></div>
+            <div class="field"><label for="p-name">Name</label><input id="p-name" type="text" name="name" placeholder="Your name" /></div>
+            <div class="field"><label for="p-mobile">Mobile</label><input id="p-mobile" type="tel" name="mobile" placeholder="04xx xxx xxx" /></div>
           </div>
           <div class="row">
-            <div class="field"><label for="p-email">Email</label><input id="p-email" type="email" name="email" placeholder="you@email.com" /><span class="field-err">Please enter a valid email address.</span></div>
-            <div class="field"><label for="p-suburb">Suburb</label><input id="p-suburb" type="text" name="suburb" placeholder="e.g. Brunswick" /><span class="field-err">Please enter your suburb.</span></div>
+            <div class="field"><label for="p-email">Email</label><input id="p-email" type="email" name="email" placeholder="you@email.com" /></div>
+            <div class="field"><label for="p-suburb">Suburb</label><input id="p-suburb" type="text" name="suburb" placeholder="e.g. Brunswick" /></div>
           </div>
           <div class="field">
             <label for="p-pref">Preferred contact method</label>
@@ -118,10 +118,9 @@
             </select>
           </div>
           <div class="field"><label for="p-job">What's the job?</label>
-            <select id="p-job" name="job"><option value="">Not sure — you tell me</option><option>Rubbish removal</option><option>Tenant clean out</option><option>Yard clean up</option><option>Light demolition</option><option>Deceased estate</option><option>Hard &amp; bulky waste</option></select>
-            <span class="field-err">Please select a job type.</span>
+            <select id="p-job" name="job"><option>Not sure — you tell me</option><option>Rubbish removal</option><option>Tenant clean out</option><option>Yard clean up</option><option>Light demolition</option><option>Deceased estate</option><option>Hard &amp; bulky waste</option></select>
           </div>
-          <div class="field"><label for="p-details">What needs removing?</label><textarea id="p-details" name="details" placeholder="e.g. a couch, an old fridge and a few bags of garden waste"></textarea><span class="field-err">Please describe what needs removing.</span></div>
+          <div class="field"><label for="p-details">What needs removing?</label><textarea id="p-details" name="details" placeholder="e.g. a couch, an old fridge and a few bags of garden waste"></textarea></div>
           <button type="submit" class="btn btn--green btn--lg btn--block">Send my enquiry</button>
         </form>
       </div>

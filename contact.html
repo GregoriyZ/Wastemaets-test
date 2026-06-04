@@ -66,7 +66,7 @@
           </div>
         </div>
 
-        <form class="form" action="https://api.web3forms.com/submit" method="post" id="contact-form" novalidate>
+        <form class="form" action="https://api.web3forms.com/submit" method="post" id="contact-form">
           <h2 class="disp" style="font-size:30px;margin-bottom:6px;">Send an enquiry</h2>
           <p class="muted" style="margin-bottom:22px;">We usually reply within one business day.</p>
           <div id="form-success" style="display:none;background:var(--green);color:#0a1303;padding:14px 18px;margin-bottom:18px;font-weight:600;">Thanks — we'll be in touch soon!</div>
@@ -75,12 +75,12 @@
           <input type="hidden" name="redirect" value="https://wastemates.com.au/contact.html?sent=1" />
           <div style="display:none"><input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" /></div>
           <div class="row">
-            <div class="field"><label for="c-name">Name</label><input id="c-name" type="text" name="name" placeholder="Your name" required /><span class="field-err">Please enter your name.</span></div>
-            <div class="field"><label for="c-mobile">Mobile</label><input id="c-mobile" type="tel" name="mobile" placeholder="04xx xxx xxx" required /><span class="field-err">Please enter a valid Australian mobile (e.g. 0412 345 678).</span></div>
+            <div class="field"><label for="c-name">Name</label><input id="c-name" type="text" name="name" placeholder="Your name" /></div>
+            <div class="field"><label for="c-mobile">Mobile</label><input id="c-mobile" type="tel" name="mobile" placeholder="04xx xxx xxx" /></div>
           </div>
           <div class="row">
-            <div class="field"><label for="c-email">Email</label><input id="c-email" type="email" name="email" placeholder="you@email.com" /><span class="field-err">Please enter a valid email address.</span></div>
-            <div class="field"><label for="c-suburb">Suburb</label><input id="c-suburb" type="text" name="suburb" placeholder="e.g. Brunswick" /><span class="field-err">Please enter your suburb.</span></div>
+            <div class="field"><label for="c-email">Email</label><input id="c-email" type="email" name="email" placeholder="you@email.com" /></div>
+            <div class="field"><label for="c-suburb">Suburb</label><input id="c-suburb" type="text" name="suburb" placeholder="e.g. Brunswick" /></div>
           </div>
           <div class="field">
             <label for="c-pref">Preferred contact method</label>
@@ -91,10 +91,9 @@
             </select>
           </div>
           <div class="field"><label for="c-job">What's the job?</label>
-            <select id="c-job" name="job"><option value="">Not sure — you tell me</option><option>Rubbish removal</option><option>Tenant clean out</option><option>Yard clean up</option><option>Light demolition</option><option>Deceased estate</option><option>Hard &amp; bulky waste</option></select>
-            <span class="field-err">Please select a job type.</span>
+            <select id="c-job" name="job"><option>Not sure — you tell me</option><option>Rubbish removal</option><option>Tenant clean out</option><option>Yard clean up</option><option>Light demolition</option><option>Deceased estate</option><option>Hard &amp; bulky waste</option></select>
           </div>
-          <div class="field"><label for="c-details">What needs removing?</label><textarea id="c-details" name="details" placeholder="Tell us what you've got — a couch, garden waste, a whole garage…"></textarea><span class="field-err">Please describe what needs removing.</span></div>
+          <div class="field"><label for="c-details">What needs removing?</label><textarea id="c-details" name="details" placeholder="Tell us what you've got — a couch, garden waste, a whole garage…"></textarea></div>
           <button type="submit" class="btn btn--green btn--lg btn--block">Send enquiry</button>
           <p class="muted" style="margin-top:14px;font-size:13.5px;text-align:center;">Or call <span class="green">0494 013 254</span> for the fastest response.</p>
         </form>
