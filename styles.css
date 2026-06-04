@@ -297,6 +297,10 @@ h3.disp{font-size:clamp(22px,2.4vw,30px);}
 }
 .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--green);}
 .field textarea{min-height:120px;resize:vertical;}
+.pref-group{display:flex;gap:10px;flex-wrap:wrap;margin-top:2px;}
+.pref-opt{display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--bg);border:1px solid var(--line2);padding:10px 16px;font-size:14px;font-family:var(--body);color:#fff;transition:border-color .15s,background .15s;user-select:none;}
+.pref-opt input[type=radio]{accent-color:var(--green);width:15px;height:15px;flex-shrink:0;}
+.pref-opt:has(input:checked){border-color:var(--green);background:rgba(124,185,65,.08);}
 .field--error input,.field--error textarea,.field--error select{border-color:#e05252;}
 .field-err{display:none;color:#e05252;font-size:12.5px;margin-top:5px;}
 .field--error .field-err{display:block;}
