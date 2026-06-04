@@ -44,9 +44,62 @@
     }
   }
 
+  // Enquiry form validation — works for both #contact-form and #pricing-form
+  function bindFormValidation() {
+    var forms = document.querySelectorAll('#contact-form, #pricing-form');
+    forms.forEach(function (form) {
+      form.setAttribute('novalidate', '');
+
+      form.addEventListener('submit', function (e) {
+        var valid = true;
+
+        form.querySelectorAll('.field').forEach(function (field) {
+          var input = field.querySelector('input, textarea, select');
+          if (!input || input.type === 'hidden' || input.type === 'checkbox') return;
+
+          var val = input.value.trim();
+          var err = false;
+
+          if (input.name === 'name') {
+            err = val === '';
+          } else if (input.name === 'mobile') {
+            var digits = val.replace(/[\s\-]/g, '');
+            err = !/^04\d{8}$/.test(digits);
+          } else if (input.name === 'email') {
+            err = val !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+          } else if (input.name === 'suburb') {
+            err = val === '';
+          } else if (input.name === 'job') {
+            err = val === '';
+          } else if (input.name === 'details') {
+            err = val === '';
+          }
+
+          field.classList.toggle('field--error', err);
+          if (err) valid = false;
+        });
+
+        if (!valid) {
+          e.preventDefault();
+          var first = form.querySelector('.field--error input, .field--error textarea, .field--error select');
+          if (first) first.focus();
+        }
+      });
+
+      // Clear error on a field as soon as the user edits it
+      form.querySelectorAll('.field input, .field textarea, .field select').forEach(function (input) {
+        input.addEventListener('input', function () {
+          var field = input.closest('.field');
+          if (field) field.classList.remove('field--error');
+        });
+      });
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     bindMenu();
     bindFaq();
     handleFormSuccess();
+    bindFormValidation();
   });
 })();
