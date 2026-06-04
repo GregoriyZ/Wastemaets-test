@@ -95,7 +95,7 @@
             <div><div class="lbl">Prefer to call?</div><div class="val">0494 013 254</div></div>
           </div>
         </div>
-        <form class="form" action="https://api.web3forms.com/submit" method="post" id="pricing-form">
+        <form class="form" action="https://api.web3forms.com/submit" method="post" id="pricing-form" enctype="multipart/form-data">
           <div id="form-success" style="display:none;background:var(--green);color:#0a1303;padding:14px 18px;margin-bottom:18px;font-weight:600;">Thanks — we'll be in touch soon!</div>
           <input type="hidden" name="access_key" value="b8418392-b930-4b03-b1e9-31d8a847ab9c" />
           <input type="hidden" name="subject" value="New Enquiry — WasteMates Website" />
@@ -121,6 +121,7 @@
             <select id="p-job" name="job"><option>Not sure — you tell me</option><option>Rubbish removal</option><option>Tenant clean out</option><option>Yard clean up</option><option>Light demolition</option><option>Deceased estate</option><option>Hard &amp; bulky waste</option></select>
           </div>
           <div class="field"><label for="p-details">What needs removing?</label><textarea id="p-details" name="details" placeholder="e.g. a couch, an old fridge and a few bags of garden waste"></textarea></div>
+          <div class="field"><label for="p-photos">Photos (optional)</label><input id="p-photos" type="file" name="attachment" accept="image/*" multiple /></div>
           <button type="submit" class="btn btn--green btn--lg btn--block">Send my enquiry</button>
         </form>
       </div>

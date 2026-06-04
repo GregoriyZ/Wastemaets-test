@@ -66,7 +66,7 @@
           </div>
         </div>
 
-        <form class="form" action="https://api.web3forms.com/submit" method="post" id="contact-form">
+        <form class="form" action="https://api.web3forms.com/submit" method="post" id="contact-form" enctype="multipart/form-data">
           <h2 class="disp" style="font-size:30px;margin-bottom:6px;">Send an enquiry</h2>
           <p class="muted" style="margin-bottom:22px;">We usually reply within one business day.</p>
           <div id="form-success" style="display:none;background:var(--green);color:#0a1303;padding:14px 18px;margin-bottom:18px;font-weight:600;">Thanks — we'll be in touch soon!</div>
@@ -94,6 +94,7 @@
             <select id="c-job" name="job"><option>Not sure — you tell me</option><option>Rubbish removal</option><option>Tenant clean out</option><option>Yard clean up</option><option>Light demolition</option><option>Deceased estate</option><option>Hard &amp; bulky waste</option></select>
           </div>
           <div class="field"><label for="c-details">What needs removing?</label><textarea id="c-details" name="details" placeholder="Tell us what you've got — a couch, garden waste, a whole garage…"></textarea></div>
+          <div class="field"><label for="c-photos">Photos (optional)</label><input id="c-photos" type="file" name="attachment" accept="image/*" multiple /></div>
           <button type="submit" class="btn btn--green btn--lg btn--block">Send enquiry</button>
           <p class="muted" style="margin-top:14px;font-size:13.5px;text-align:center;">Or call <span class="green">0494 013 254</span> for the fastest response.</p>
         </form>
