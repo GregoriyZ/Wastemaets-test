@@ -44,9 +44,22 @@
     }
   }
 
+  function bindMarquee() {
+    var track = document.querySelector('.marquee-track');
+    if (!track) return;
+    var marquee = track.closest('.marquee');
+    marquee.addEventListener('mouseenter', function () {
+      track.style.animationPlayState = 'paused';
+    });
+    marquee.addEventListener('mouseleave', function () {
+      track.style.animationPlayState = 'running';
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     bindMenu();
     bindFaq();
     handleFormSuccess();
+    bindMarquee();
   });
 })();

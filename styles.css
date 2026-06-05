@@ -148,8 +148,7 @@ h3.disp{font-size:clamp(22px,2.4vw,30px);}
 /* ---------- rating strip ---------- */
 .strip{background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
 .marquee{overflow:hidden;}
-.marquee-track{display:flex;width:max-content;animation:marquee-scroll 32s linear infinite;}
-.marquee:hover .marquee-track{animation-play-state:paused;}
+.marquee-track{display:flex;width:max-content;animation:marquee-scroll 32s linear infinite;will-change:transform;}
 .marquee-group{display:flex;align-items:center;flex-shrink:0;padding:20px 0;}
 .marquee-group .it{display:flex;align-items:center;font-family:var(--cond);font-weight:600;text-transform:uppercase;letter-spacing:.06em;font-size:15px;color:var(--ink2);white-space:nowrap;}
 .marquee-group .dot{flex-shrink:0;width:5px;height:5px;border-radius:50%;background:var(--green);margin:0 24px;}
