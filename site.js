@@ -1,4 +1,51 @@
 // WasteMates — shared behaviour
+
+// Google Maps callback — dark-styled map with service area circle
+function initMap() {
+  var melbourne = { lat: -37.8136, lng: 144.9631 };
+
+  var darkStyle = [
+    { elementType: 'geometry',                                stylers: [{ color: '#111409' }] },
+    { elementType: 'labels.text.fill',                        stylers: [{ color: '#8a9a78' }] },
+    { elementType: 'labels.text.stroke',                      stylers: [{ color: '#111409' }] },
+    { featureType: 'road',        elementType: 'geometry',    stylers: [{ color: '#252b1c' }] },
+    { featureType: 'road.highway',elementType: 'geometry',    stylers: [{ color: '#333d26' }] },
+    { featureType: 'road.highway',elementType: 'labels.text.fill', stylers: [{ color: '#61DE2A' }] },
+    { featureType: 'water',       elementType: 'geometry',    stylers: [{ color: '#0d1a2d' }] },
+    { featureType: 'water',       elementType: 'labels.text.fill', stylers: [{ color: '#3a5a7a' }] },
+    { featureType: 'poi',         elementType: 'geometry',    stylers: [{ color: '#161b0f' }] },
+    { featureType: 'poi.park',    elementType: 'geometry',    stylers: [{ color: '#1a2210' }] },
+    { featureType: 'transit',     elementType: 'geometry',    stylers: [{ color: '#1e2318' }] },
+    { featureType: 'administrative', elementType: 'geometry.stroke', stylers: [{ color: '#2a3020' }] },
+    { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#c5ccbd' }] },
+  ];
+
+  var opts = {
+    center: melbourne,
+    zoom: 9,
+    styles: darkStyle,
+    disableDefaultUI: true,
+    zoomControl: true,
+    gestureHandling: 'cooperative',
+    backgroundColor: '#111409',
+  };
+
+  ['about-map', 'contact-map'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var map = new google.maps.Map(el, opts);
+    new google.maps.Circle({
+      map: map,
+      center: melbourne,
+      radius: 50000,
+      fillColor: '#61DE2A',
+      fillOpacity: 0.12,
+      strokeColor: '#61DE2A',
+      strokeOpacity: 0.7,
+      strokeWeight: 2,
+    });
+  });
+}
 (function () {
   // Mobile menu toggle
   function bindMenu() {

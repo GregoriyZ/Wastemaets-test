@@ -62,7 +62,7 @@
             <div><div class="lbl">Hours</div><div class="val" style="font-size:18px;">Mon–Sat 7am–6pm · Sun by appt.</div></div>
           </div>
           <div class="about-photo" style="margin-top:6px;">
-            <img id="contact-map" src="assets/greg_map.png" alt="WasteMates service area — Melbourne and surrounding suburbs" style="height:436px" />
+            <div id="contact-map"></div>
           </div>
         </div>
 
@@ -133,5 +133,6 @@
   </footer>
 
   <script src="site.js"></script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_MAPS_API_KEY&callback=initMap"></script>
 </body>
 </html>
