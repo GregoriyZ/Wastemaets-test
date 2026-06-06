@@ -129,9 +129,8 @@ h3.disp{font-size:clamp(22px,2.4vw,30px);}
 .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:50px;align-items:center;padding:70px 0 84px;}
 .hero-photo{position:relative;}
 .hero-photo img{
-  width:100%;height:480px;display:block;object-fit:cover;
+  width:100%;height:auto;display:block;
   box-shadow:0 0 0 3px var(--green),0 26px 60px rgba(0,0,0,.6);
-  clip-path:polygon(4% 0,100% 0,96% 100%,0 100%);
 }
 .hero-badge{
   position:absolute;left:-18px;bottom:26px;background:var(--green);color:#0a1303;
@@ -206,7 +205,7 @@ h3.disp{font-size:clamp(22px,2.4vw,30px);}
 /* ---------- about teaser ---------- */
 .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;}
 .about-photo{position:relative;}
-.about-photo img{width:100%;height:420px;display:block;object-fit:cover;}
+.about-photo img{width:100%;height:auto;display:block;}
 .about-photo::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 3px var(--green);pointer-events:none;}
 /* embedded Leaflet map — service area */
 #about-map,
@@ -303,7 +302,7 @@ h3.disp{font-size:clamp(22px,2.4vw,30px);}
 @media(max-width:980px){
   .hero-grid,.about-grid,.two-col,.contact-grid{grid-template-columns:1fr;}
   .hero-photo{order:-1;}
-  .hero-photo img{height:340px;}
+  .hero-photo img{height:auto;}
   .svc-grid,.tst-grid,.steps{grid-template-columns:repeat(2,1fr);}
   .why-grid,.price-grid{grid-template-columns:repeat(2,1fr);}
   .foot-grid{grid-template-columns:1fr 1fr;}
@@ -321,7 +320,7 @@ h3.disp{font-size:clamp(22px,2.4vw,30px);}
   .section.tight{padding:46px 0;}
   .svc-grid,.tst-grid,.steps,.why-grid,.price-grid,.foot-grid,.form .row{grid-template-columns:1fr;}
   .cta-band .wrap{flex-direction:column;align-items:flex-start;}
-  .about-photo img{height:320px;}
+  .about-photo img{height:auto;}
 }
 /* phone refinements — keep big display type & rows from clipping */
 @media(max-width:520px){
