@@ -1,48 +1,60 @@
 // WasteMates — shared behaviour
 
-// Google Maps callback — dark-styled map with service area circle
+// Mapbox service-area map — dark theme, 130 km radius (Mooroolbark → Ballarat)
 function initMap() {
-  var melbourne = { lat: -37.8136, lng: 144.9631 };
+  if (typeof mapboxgl === 'undefined') return;
 
-  var darkStyle = [
-    { elementType: 'geometry',                                stylers: [{ color: '#111409' }] },
-    { elementType: 'labels.text.fill',                        stylers: [{ color: '#8a9a78' }] },
-    { elementType: 'labels.text.stroke',                      stylers: [{ color: '#111409' }] },
-    { featureType: 'road',        elementType: 'geometry',    stylers: [{ color: '#252b1c' }] },
-    { featureType: 'road.highway',elementType: 'geometry',    stylers: [{ color: '#333d26' }] },
-    { featureType: 'road.highway',elementType: 'labels.text.fill', stylers: [{ color: '#61DE2A' }] },
-    { featureType: 'water',       elementType: 'geometry',    stylers: [{ color: '#0d1a2d' }] },
-    { featureType: 'water',       elementType: 'labels.text.fill', stylers: [{ color: '#3a5a7a' }] },
-    { featureType: 'poi',         elementType: 'geometry',    stylers: [{ color: '#161b0f' }] },
-    { featureType: 'poi.park',    elementType: 'geometry',    stylers: [{ color: '#1a2210' }] },
-    { featureType: 'transit',     elementType: 'geometry',    stylers: [{ color: '#1e2318' }] },
-    { featureType: 'administrative', elementType: 'geometry.stroke', stylers: [{ color: '#2a3020' }] },
-    { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#c5ccbd' }] },
-  ];
+  mapboxgl.accessToken = 'YOUR_MAPBOX_TOKEN';
 
-  var opts = {
-    center: melbourne,
-    zoom: 9,
-    styles: darkStyle,
-    disableDefaultUI: true,
-    zoomControl: true,
-    gestureHandling: 'cooperative',
-    backgroundColor: '#111409',
-  };
+  var center = [144.9631, -37.8136]; // Melbourne CBD [lng, lat]
+  var radiusKm = 130;
+
+  // Build a GeoJSON circle polygon (geographic, not screen-space)
+  function makeCircle(centerLngLat, km, steps) {
+    steps = steps || 80;
+    var coords = [];
+    var latR  = km / 111.32;
+    var lngR  = km / (111.32 * Math.cos(centerLngLat[1] * Math.PI / 180));
+    for (var i = 0; i <= steps; i++) {
+      var angle = (i / steps) * 2 * Math.PI;
+      coords.push([
+        centerLngLat[0] + lngR * Math.sin(angle),
+        centerLngLat[1] + latR * Math.cos(angle)
+      ]);
+    }
+    return { type: 'Feature', geometry: { type: 'Polygon', coordinates: [coords] } };
+  }
+
+  var circle = makeCircle(center, radiusKm);
 
   ['about-map', 'contact-map'].forEach(function (id) {
     var el = document.getElementById(id);
     if (!el) return;
-    var map = new google.maps.Map(el, opts);
-    new google.maps.Circle({
-      map: map,
-      center: melbourne,
-      radius: 50000,
-      fillColor: '#61DE2A',
-      fillOpacity: 0.12,
-      strokeColor: '#61DE2A',
-      strokeOpacity: 0.7,
-      strokeWeight: 2,
+
+    var map = new mapboxgl.Map({
+      container: el,
+      style: 'mapbox://styles/mapbox/dark-v11',
+      center: center,
+      zoom: 7.8,
+      attributionControl: false,
+    });
+
+    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }));
+
+    map.on('load', function () {
+      map.addSource('service-area', { type: 'geojson', data: circle });
+      map.addLayer({
+        id: 'service-fill',
+        type: 'fill',
+        source: 'service-area',
+        paint: { 'fill-color': '#61DE2A', 'fill-opacity': 0.12 }
+      });
+      map.addLayer({
+        id: 'service-outline',
+        type: 'line',
+        source: 'service-area',
+        paint: { 'line-color': '#61DE2A', 'line-width': 2, 'line-opacity': 0.8 }
+      });
     });
   });
 }
@@ -108,5 +120,6 @@ function initMap() {
     bindFaq();
     handleFormSuccess();
     bindMarquee();
+    initMap();
   });
 })();
