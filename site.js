@@ -1,61 +1,36 @@
 // WasteMates — shared behaviour
 
-// Mapbox service-area map — dark theme, 130 km radius (Mooroolbark → Ballarat)
+// Leaflet service-area map — CartoDB dark tiles, 130 km radius (Mooroolbark → Ballarat)
 function initMap() {
-  if (typeof mapboxgl === 'undefined') return;
+  if (typeof L === 'undefined') return;
 
-  mapboxgl.accessToken = 'YOUR_MAPBOX_TOKEN';
-
-  var center = [144.9631, -37.8136]; // Melbourne CBD [lng, lat]
-  var radiusKm = 130;
-
-  // Build a GeoJSON circle polygon (geographic, not screen-space)
-  function makeCircle(centerLngLat, km, steps) {
-    steps = steps || 80;
-    var coords = [];
-    var latR  = km / 111.32;
-    var lngR  = km / (111.32 * Math.cos(centerLngLat[1] * Math.PI / 180));
-    for (var i = 0; i <= steps; i++) {
-      var angle = (i / steps) * 2 * Math.PI;
-      coords.push([
-        centerLngLat[0] + lngR * Math.sin(angle),
-        centerLngLat[1] + latR * Math.cos(angle)
-      ]);
-    }
-    return { type: 'Feature', geometry: { type: 'Polygon', coordinates: [coords] } };
-  }
-
-  var circle = makeCircle(center, radiusKm);
+  var melbourne = [-37.8136, 144.9631];
 
   ['about-map', 'contact-map'].forEach(function (id) {
     var el = document.getElementById(id);
     if (!el) return;
 
-    var map = new mapboxgl.Map({
-      container: el,
-      style: 'mapbox://styles/mapbox/dark-v11',
-      center: center,
-      zoom: 7.8,
-      attributionControl: false,
+    var map = L.map(el, {
+      center: melbourne,
+      zoom: 8,
+      zoomControl: true,
+      scrollWheelZoom: false,
     });
 
-    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }));
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 19,
+    }).addTo(map);
 
-    map.on('load', function () {
-      map.addSource('service-area', { type: 'geojson', data: circle });
-      map.addLayer({
-        id: 'service-fill',
-        type: 'fill',
-        source: 'service-area',
-        paint: { 'fill-color': '#61DE2A', 'fill-opacity': 0.12 }
-      });
-      map.addLayer({
-        id: 'service-outline',
-        type: 'line',
-        source: 'service-area',
-        paint: { 'line-color': '#61DE2A', 'line-width': 2, 'line-opacity': 0.8 }
-      });
-    });
+    L.circle(melbourne, {
+      radius: 130000,
+      color: '#61DE2A',
+      fillColor: '#61DE2A',
+      fillOpacity: 0.12,
+      weight: 2,
+      opacity: 0.8,
+    }).addTo(map);
   });
 }
 (function () {
