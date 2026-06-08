@@ -63,6 +63,38 @@ function initMap() {
     });
   }
 
+  // Read a cookie by name (used for Meta's _fbc/_fbp browser/click ids,
+  // which significantly improve Conversions API match quality).
+  function getCookie(name) {
+    var m = document.cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]*)'));
+    return m ? decodeURIComponent(m[1]) : null;
+  }
+
+  // Fire a "Lead" conversion both client-side (Meta Pixel) and server-side
+  // (Conversions API, via capi-relay.php — see that file for setup notes).
+  // Both calls share the same event_id so Meta de-duplicates them into one
+  // event rather than counting the conversion twice. The server-side leg
+  // also reaches Meta even when the browser pixel itself is blocked.
+  function trackLead() {
+    var eventId = 'lead-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+
+    if (typeof fbq === 'function') {
+      fbq('track', 'Lead', {}, { eventID: eventId });
+    }
+
+    fetch('/capi-relay.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event_name: 'Lead',
+        event_id: eventId,
+        url: window.location.href,
+        fbc: getCookie('_fbc'),
+        fbp: getCookie('_fbp'),
+      }),
+    }).catch(function () { /* relay is best-effort — never block the UI on it */ });
+  }
+
   // Show success banner when redirected back after form submission (?sent=1)
   function handleFormSuccess() {
     if (window.location.search.indexOf('sent=1') === -1) return;
@@ -71,6 +103,7 @@ function initMap() {
       banner.style.display = 'block';
       banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
+    trackLead();
     // Clean the URL so a refresh doesn't re-show the banner
     if (window.history && window.history.replaceState) {
       var clean = window.location.pathname + window.location.hash;
