@@ -80,7 +80,7 @@ p{margin:0;}
 h1.disp{font-size:clamp(46px,7vw,92px);}
 h2.disp{font-size:clamp(34px,4.6vw,60px);}
 h3.disp{font-size:clamp(22px,2.4vw,30px);}
-.green{color:var(--green);}
+.green{color:var(--brand);}
 .brand-text{color:var(--brand);}
 .lead{font-size:19px;color:var(--ink2);max-width:54ch;}
 .muted{color:var(--muted);}
