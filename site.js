@@ -78,6 +78,21 @@ function initMap() {
     }
   }
 
+  // Sticky mobile call/quote bar — keeps the two highest-value actions
+  // (call now, get a quote) within thumb's reach on phones, where most
+  // visitors will be browsing. Injected once so every page picks it up.
+  function injectStickyCta() {
+    if (document.querySelector('.sticky-cta')) return;
+    var bar = document.createElement('div');
+    bar.className = 'sticky-cta';
+    bar.innerHTML =
+      '<a class="btn btn--ghost" href="tel:+61494013254">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:17px;height:17px"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>' +
+        'Call now</a>' +
+      '<a class="btn btn--green" href="contact.html">Get a Free Quote</a>';
+    document.body.appendChild(bar);
+  }
+
   function bindMarquee() {
     var track = document.querySelector('.marquee-track');
     if (!track) return;
@@ -95,6 +110,7 @@ function initMap() {
     bindFaq();
     handleFormSuccess();
     bindMarquee();
+    injectStickyCta();
     initMap();
   });
 })();
