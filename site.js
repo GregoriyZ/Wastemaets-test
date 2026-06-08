@@ -1,17 +1,17 @@
 // WasteMates — shared behaviour
 
-// Leaflet service-area map — CartoDB light tiles, 130 km radius (Mooroolbark → Ballarat)
+// Leaflet service-area map — CartoDB light tiles, 130 km radius centred on Mooroolbark
 function initMap() {
   if (typeof L === 'undefined') return;
 
-  var melbourne = [-37.8136, 144.9631];
+  var serviceCentre = [-37.78247, 145.31682];
 
   ['about-map', 'contact-map'].forEach(function (id) {
     var el = document.getElementById(id);
     if (!el) return;
 
     var map = L.map(el, {
-      center: melbourne,
+      center: serviceCentre,
       zoom: 8,
       zoomControl: true,
       scrollWheelZoom: false,
@@ -23,7 +23,7 @@ function initMap() {
       maxZoom: 19,
     }).addTo(map);
 
-    L.circle(melbourne, {
+    L.circle(serviceCentre, {
       radius: 130000,
       color: '#61DE2A',
       fillColor: '#61DE2A',
