@@ -1,6 +1,6 @@
 // WasteMates — shared behaviour
 
-// Leaflet service-area map — CartoDB dark tiles, 130 km radius (Mooroolbark → Ballarat)
+// Leaflet service-area map — CartoDB light tiles, 130 km radius (Mooroolbark → Ballarat)
 function initMap() {
   if (typeof L === 'undefined') return;
 
@@ -17,7 +17,7 @@ function initMap() {
       scrollWheelZoom: false,
     });
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       subdomains: 'abcd',
       maxZoom: 19,
