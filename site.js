@@ -55,6 +55,11 @@ function initMap() {
         var ans = item.querySelector('.faq-a');
         var open = item.classList.toggle('open');
         ans.style.maxHeight = open ? ans.scrollHeight + 'px' : '0';
+        // Track FAQ opens as content engagement
+        if (open && typeof fbq === 'function') {
+          var question = btn.textContent.trim().slice(0, 100);
+          fbq('trackCustom', 'FAQOpen', { question: question });
+        }
       });
     });
     // Initialise any pre-opened items
@@ -88,19 +93,18 @@ function initMap() {
     }
   }
 
+  // ─── High-value conversion events (pixel + CAPI relay) ──────────────────
+
   // Fire a Lead event both client-side (Meta Pixel) and server-side (CAPI relay).
-  // Both share the same event_id so Meta de-duplicates them into one conversion
-  // rather than double-counting.
+  // Both share the same event_id so Meta de-duplicates them into one conversion.
   // userData keys: em (email), ph (E.164 phone), fn (first name), ln (last name).
   // fbq() hashes PII automatically; capi-relay.php SHA-256 hashes them server-side.
   function trackLead(userData) {
     userData = userData || {};
     var eventId = 'lead-' + Date.now() + '-' + Math.random().toString(36).slice(2);
-
     if (typeof fbq === 'function') {
       fbq('track', 'Lead', userData, { eventID: eventId });
     }
-
     sendRelay({
       event_name: 'Lead',
       event_id: eventId,
@@ -115,14 +119,11 @@ function initMap() {
   }
 
   // Fire a Contact event when any phone number link is clicked.
-  // This captures call intent before the browser switches to the dialler.
   function trackContact() {
     var eventId = 'contact-' + Date.now() + '-' + Math.random().toString(36).slice(2);
-
     if (typeof fbq === 'function') {
       fbq('track', 'Contact', {}, { eventID: eventId });
     }
-
     sendRelay({
       event_name: 'Contact',
       event_id: eventId,
@@ -132,13 +133,36 @@ function initMap() {
     });
   }
 
-  // Wire up the quote/enquiry form submit buttons.
-  // Fires trackLead on form submit, capturing whatever PII the user typed
-  // (name → fn/ln, phone → E.164, email) to maximise Meta's match quality.
+  // ─── Behavioural engagement events (pixel only) ──────────────────────────
+  // These inform Meta's audience model and ad optimisation but are not
+  // conversion events, so they don't need server-side CAPI relay.
+
+  function trackView(contentName, contentCategory) {
+    if (typeof fbq === 'function') {
+      fbq('track', 'ViewContent', {
+        content_name: contentName,
+        content_category: contentCategory || '',
+      });
+    }
+  }
+
+  function trackQuoteIntent(source) {
+    if (typeof fbq === 'function') {
+      fbq('track', 'InitiateCheckout', {
+        content_name: 'Get a Quote',
+        content_category: source || '',
+      });
+    }
+  }
+
+  // ─── Form submit tracking ─────────────────────────────────────────────────
+
+  // Wire up all three quote/enquiry forms (hero, contact, pricing).
+  // Fires trackLead on submit with PII captured from the form fields.
   // Uses sendBeacon under the hood so the relay request survives the page
   // navigation that immediately follows the form POST to formsubmit.co.
   function bindFormEvents() {
-    ['hero-quote-form', 'contact-form'].forEach(function (id) {
+    ['hero-quote-form', 'contact-form', 'pricing-form'].forEach(function (id) {
       var form = document.getElementById(id);
       if (!form) return;
 
@@ -161,7 +185,7 @@ function initMap() {
           if (digits.length >= 9) data.ph = digits;
         }
 
-        // Email (contact form only — hero form has no email field)
+        // Email
         var emailEl = form.querySelector('input[type="email"]');
         if (emailEl && emailEl.value.trim()) {
           data.em = emailEl.value.trim().toLowerCase();
@@ -172,7 +196,10 @@ function initMap() {
     });
   }
 
-  // Fire a Contact event whenever any phone link (tel:) is clicked.
+  // ─── Phone link tracking ──────────────────────────────────────────────────
+
+  // Fire Contact event whenever any tel: link is clicked (nav, footer,
+  // sticky bar, CTA sections — everywhere).
   function bindPhoneEvents() {
     document.querySelectorAll('a[href^="tel:"]').forEach(function (link) {
       link.addEventListener('click', function () {
@@ -180,6 +207,81 @@ function initMap() {
       });
     });
   }
+
+  // ─── CTA & navigation tracking ────────────────────────────────────────────
+
+  function bindCtaEvents() {
+
+    // "Get a Quote" / "Get a Free Quote" / "Contact Us" buttons that lead to
+    // the contact or pricing form. These are the highest-intent pre-lead clicks.
+    document.querySelectorAll(
+      'a[href="contact.html"], a[href="#quote"]'
+    ).forEach(function (link) {
+      // Don't double-track nav links that are purely informational
+      // (phone links are already caught by bindPhoneEvents above)
+      link.addEventListener('click', function () {
+        // Identify where on the page the click came from
+        var source = 'unknown';
+        if (link.closest('.site-head'))   source = 'Nav';
+        else if (link.closest('.sticky-cta')) source = 'Sticky bar';
+        else if (link.closest('.cta-band'))   source = 'CTA band';
+        else if (link.closest('.hero'))       source = 'Hero';
+        else if (link.closest('.section'))    source = 'Section';
+        else if (link.closest('footer'))      source = 'Footer';
+        trackQuoteIntent(source);
+      });
+    });
+
+    // Service cards — which service is the visitor interested in?
+    document.querySelectorAll('.svc-card').forEach(function (card) {
+      card.addEventListener('click', function () {
+        var h3 = card.querySelector('h3');
+        trackView(h3 ? h3.textContent.trim() : 'Service', 'Service');
+      });
+    });
+
+    // Pricing page clicks — price researchers are warm leads
+    document.querySelectorAll('a[href="pricing.html"]').forEach(function (link) {
+      link.addEventListener('click', function () {
+        trackView('Pricing', 'Pricing');
+      });
+    });
+
+    // About page clicks — brand trust signals
+    document.querySelectorAll('a[href="about.html"]').forEach(function (link) {
+      link.addEventListener('click', function () {
+        trackView('About Us', 'About');
+      });
+    });
+
+    // Services page clicks
+    document.querySelectorAll('a[href="services.html"]').forEach(function (link) {
+      link.addEventListener('click', function () {
+        trackView('Services', 'Services');
+      });
+    });
+
+    // Social media clicks — shows brand engagement off-site
+    var socialPlatforms = {
+      'instagram.com': 'Instagram',
+      'youtube.com':   'YouTube',
+      'facebook.com':  'Facebook',
+      'tiktok.com':    'TikTok',
+    };
+    document.querySelectorAll('.socials a').forEach(function (link) {
+      link.addEventListener('click', function () {
+        var platform = 'Social';
+        Object.keys(socialPlatforms).forEach(function (domain) {
+          if (link.href.indexOf(domain) !== -1) platform = socialPlatforms[domain];
+        });
+        if (typeof fbq === 'function') {
+          fbq('trackCustom', 'SocialClick', { platform: platform });
+        }
+      });
+    });
+  }
+
+  // ─── Success banner ───────────────────────────────────────────────────────
 
   // Show success banner when redirected back after form submission (?sent=1).
   // trackLead already fired on submit — we only show the UI confirmation here.
@@ -197,9 +299,10 @@ function initMap() {
     }
   }
 
-  // Sticky mobile call/quote bar — keeps the two highest-value actions
-  // (call now, get a quote) within thumb's reach on phones, where most
-  // visitors will be browsing. Injected once so every page picks it up.
+  // ─── Sticky mobile CTA bar ────────────────────────────────────────────────
+
+  // Keeps the two highest-value actions (call now, get a quote) within
+  // thumb's reach on phones. Injected once so every page picks it up.
   function injectStickyCta() {
     if (document.querySelector('.sticky-cta')) return;
     var bar = document.createElement('div');
@@ -228,10 +331,11 @@ function initMap() {
     bindMenu();
     bindFaq();
     bindFormEvents();
-    bindPhoneEvents();
     handleFormSuccess();
     bindMarquee();
-    injectStickyCta();
+    injectStickyCta();    // must come before bindPhoneEvents/bindCtaEvents
+    bindPhoneEvents();    // catches sticky bar phone links too
+    bindCtaEvents();      // catches sticky bar CTA links too
     initMap();
   });
 })();
