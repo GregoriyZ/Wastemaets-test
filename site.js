@@ -68,24 +68,76 @@ function initMap() {
     });
   }
 
+  // ─── Identity helpers ────────────────────────────────────────────────────
+
+  // Read a browser cookie by name. Used to retrieve Meta's _fbc (click ID)
+  // and _fbp (browser ID) cookies that the pixel writes automatically.
+  function getCookie(name) {
+    var m = document.cookie.match(new RegExp('(?:^|;\\s*)' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '=([^;]*)'));
+    return m ? decodeURIComponent(m[1]) : null;
+  }
+
+  // Capture fbclid from the URL when someone arrives from a Facebook ad
+  // (?fbclid=AbCd...) and store it for the session. Meta's pixel also reads
+  // the _fbc cookie it sets automatically, but this ensures the click ID is
+  // available even before that cookie is written.
+  function captureClickId() {
+    var m = window.location.search.match(/[?&]fbclid=([^&]+)/);
+    if (m) {
+      try {
+        // _fbc format used by Meta: fb.{version}.{timestamp}.{fbclid}
+        sessionStorage.setItem('_wm_fbc', 'fb.1.' + Date.now() + '.' + decodeURIComponent(m[1]));
+      } catch(e) {}
+    }
+  }
+
+  // Persist email/phone captured from a form so subsequent events in the same
+  // browsing session (e.g. a phone-call click after filling a quote form) can
+  // include them — improving match quality on Contact and InitiateCheckout.
+  function storeUser(data) {
+    if (!data) return;
+    try {
+      var stored = JSON.parse(sessionStorage.getItem('_wm_user') || '{}');
+      ['em', 'ph', 'fn', 'ln'].forEach(function(k) { if (data[k]) stored[k] = data[k]; });
+      sessionStorage.setItem('_wm_user', JSON.stringify(stored));
+    } catch(e) {}
+  }
+
+  // Build the richest possible user-data object for a pixel event by merging:
+  //   1. Any PII stored from earlier form interactions this session (em, ph, fn, ln)
+  //   2. PII passed directly to this call (overrides stored values)
+  //   3. Meta click ID (fbc) — from _fbc cookie or our fbclid capture above
+  //   4. Meta browser ID (fbp) — from _fbp cookie set by the pixel
+  // fbq() automatically hashes em/ph before sending to Meta.
+  function buildEventUser(extra) {
+    var user = {};
+    try { user = JSON.parse(sessionStorage.getItem('_wm_user') || '{}'); } catch(e) {}
+    if (extra) ['em', 'ph', 'fn', 'ln'].forEach(function(k) { if (extra[k]) user[k] = extra[k]; });
+    var fbc = getCookie('_fbc') || (function() {
+      try { return sessionStorage.getItem('_wm_fbc'); } catch(e) { return null; }
+    })();
+    var fbp = getCookie('_fbp');
+    if (fbc) user.fbc = fbc;
+    if (fbp) user.fbp = fbp;
+    return user;
+  }
+
   // ─── Conversion events (pixel — server-side handled by Stape CAPIG) ────────
   // Server-side deduplication is now managed by the Conversions API Gateway
   // at capig.wastemates.com.au — no custom relay needed.
 
-  // Fire a Lead event with advanced matching parameters.
-  // userData keys: em (email), ph (E.164 phone), fn (first name), ln (last name).
-  // fbq() hashes PII automatically before sending to Meta.
+  // Fire a Lead event. Saves PII to session so later events can use it.
   function trackLead(userData) {
-    userData = userData || {};
+    storeUser(userData);
     if (typeof fbq === 'function') {
-      fbq('track', 'Lead', userData);
+      fbq('track', 'Lead', buildEventUser(userData));
     }
   }
 
-  // Fire a Contact event when any phone number link is clicked.
+  // Fire a Contact event. Includes stored email/phone + Meta click ID.
   function trackContact() {
     if (typeof fbq === 'function') {
-      fbq('track', 'Contact');
+      fbq('track', 'Contact', buildEventUser());
     }
   }
 
@@ -101,12 +153,13 @@ function initMap() {
     }
   }
 
+  // Fire an InitiateCheckout event. Includes stored email/phone + click ID.
   function trackQuoteIntent(source) {
     if (typeof fbq === 'function') {
-      fbq('track', 'InitiateCheckout', {
-        content_name: 'Get a Quote',
-        content_category: source || '',
-      });
+      var user = buildEventUser();
+      user.content_name = 'Get a Quote';
+      user.content_category = source || '';
+      fbq('track', 'InitiateCheckout', user);
     }
   }
 
@@ -283,6 +336,7 @@ function initMap() {
   }
 
   document.addEventListener('DOMContentLoaded', function () {
+    captureClickId();     // store fbclid from URL before any events fire
     bindMenu();
     bindFaq();
     bindFormEvents();
