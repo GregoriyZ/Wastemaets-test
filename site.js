@@ -68,74 +68,29 @@ function initMap() {
     });
   }
 
-  // Read a cookie by name (used for Meta's _fbc/_fbp browser/click ids,
-  // which significantly improve Conversions API match quality).
-  function getCookie(name) {
-    var m = document.cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]*)'));
-    return m ? decodeURIComponent(m[1]) : null;
-  }
+  // ─── Conversion events (pixel — server-side handled by Stape CAPIG) ────────
+  // Server-side deduplication is now managed by the Conversions API Gateway
+  // at capig.wastemates.com.au — no custom relay needed.
 
-  // Send a payload to capi-relay.php using sendBeacon where available.
-  // sendBeacon is specifically designed to survive page navigation — a regular
-  // fetch() is cancelled the moment the browser navigates away (which happens
-  // immediately after a form submit). sendBeacon queues the request at the OS
-  // level so it completes even after the tab has moved on.
-  function sendRelay(payload) {
-    var body = JSON.stringify(payload);
-    if (navigator.sendBeacon) {
-      navigator.sendBeacon('/capi-relay.php', new Blob([body], { type: 'application/json' }));
-    } else {
-      fetch('/capi-relay.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: body,
-      }).catch(function () { /* best-effort */ });
-    }
-  }
-
-  // ─── High-value conversion events (pixel + CAPI relay) ──────────────────
-
-  // Fire a Lead event both client-side (Meta Pixel) and server-side (CAPI relay).
-  // Both share the same event_id so Meta de-duplicates them into one conversion.
+  // Fire a Lead event with advanced matching parameters.
   // userData keys: em (email), ph (E.164 phone), fn (first name), ln (last name).
-  // fbq() hashes PII automatically; capi-relay.php SHA-256 hashes them server-side.
+  // fbq() hashes PII automatically before sending to Meta.
   function trackLead(userData) {
     userData = userData || {};
-    var eventId = 'lead-' + Date.now() + '-' + Math.random().toString(36).slice(2);
     if (typeof fbq === 'function') {
-      fbq('track', 'Lead', userData, { eventID: eventId });
+      fbq('track', 'Lead', userData);
     }
-    sendRelay({
-      event_name: 'Lead',
-      event_id: eventId,
-      url: window.location.href,
-      fbc: getCookie('_fbc'),
-      fbp: getCookie('_fbp'),
-      em: userData.em || null,
-      ph: userData.ph || null,
-      fn: userData.fn || null,
-      ln: userData.ln || null,
-    });
   }
 
   // Fire a Contact event when any phone number link is clicked.
   function trackContact() {
-    var eventId = 'contact-' + Date.now() + '-' + Math.random().toString(36).slice(2);
     if (typeof fbq === 'function') {
-      fbq('track', 'Contact', {}, { eventID: eventId });
+      fbq('track', 'Contact');
     }
-    sendRelay({
-      event_name: 'Contact',
-      event_id: eventId,
-      url: window.location.href,
-      fbc: getCookie('_fbc'),
-      fbp: getCookie('_fbp'),
-    });
   }
 
   // ─── Behavioural engagement events (pixel only) ──────────────────────────
-  // These inform Meta's audience model and ad optimisation but are not
-  // conversion events, so they don't need server-side CAPI relay.
+  // These inform Meta's audience model and ad optimisation.
 
   function trackView(contentName, contentCategory) {
     if (typeof fbq === 'function') {
