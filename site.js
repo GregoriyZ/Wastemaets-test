@@ -70,16 +70,78 @@ function initMap() {
     return m ? decodeURIComponent(m[1]) : null;
   }
 
-  // Capture PII from forms just before they POST away to formsubmit.co.
-  // By the time the page redirects back with ?sent=1 the form fields are
-  // gone, so we stash what we need in sessionStorage and read it back in
-  // handleFormSuccess(). This data is used only to improve Meta's event
-  // match quality — it is never stored persistently or sent anywhere other
-  // than Meta via the pixel and CAPI relay.
-  function bindFormCapture() {
+  // Send a payload to capi-relay.php using sendBeacon where available.
+  // sendBeacon is specifically designed to survive page navigation — a regular
+  // fetch() is cancelled the moment the browser navigates away (which happens
+  // immediately after a form submit). sendBeacon queues the request at the OS
+  // level so it completes even after the tab has moved on.
+  function sendRelay(payload) {
+    var body = JSON.stringify(payload);
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon('/capi-relay.php', new Blob([body], { type: 'application/json' }));
+    } else {
+      fetch('/capi-relay.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: body,
+      }).catch(function () { /* best-effort */ });
+    }
+  }
+
+  // Fire a Lead event both client-side (Meta Pixel) and server-side (CAPI relay).
+  // Both share the same event_id so Meta de-duplicates them into one conversion
+  // rather than double-counting.
+  // userData keys: em (email), ph (E.164 phone), fn (first name), ln (last name).
+  // fbq() hashes PII automatically; capi-relay.php SHA-256 hashes them server-side.
+  function trackLead(userData) {
+    userData = userData || {};
+    var eventId = 'lead-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+
+    if (typeof fbq === 'function') {
+      fbq('track', 'Lead', userData, { eventID: eventId });
+    }
+
+    sendRelay({
+      event_name: 'Lead',
+      event_id: eventId,
+      url: window.location.href,
+      fbc: getCookie('_fbc'),
+      fbp: getCookie('_fbp'),
+      em: userData.em || null,
+      ph: userData.ph || null,
+      fn: userData.fn || null,
+      ln: userData.ln || null,
+    });
+  }
+
+  // Fire a Contact event when any phone number link is clicked.
+  // This captures call intent before the browser switches to the dialler.
+  function trackContact() {
+    var eventId = 'contact-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+
+    if (typeof fbq === 'function') {
+      fbq('track', 'Contact', {}, { eventID: eventId });
+    }
+
+    sendRelay({
+      event_name: 'Contact',
+      event_id: eventId,
+      url: window.location.href,
+      fbc: getCookie('_fbc'),
+      fbp: getCookie('_fbp'),
+    });
+  }
+
+  // Wire up the quote/enquiry form submit buttons.
+  // Fires trackLead on form submit, capturing whatever PII the user typed
+  // (name → fn/ln, phone → E.164, email) to maximise Meta's match quality.
+  // Uses sendBeacon under the hood so the relay request survives the page
+  // navigation that immediately follows the form POST to formsubmit.co.
+  function bindFormEvents() {
     ['hero-quote-form', 'contact-form'].forEach(function (id) {
       var form = document.getElementById(id);
       if (!form) return;
+
       form.addEventListener('submit', function () {
         var data = {};
 
@@ -105,46 +167,22 @@ function initMap() {
           data.em = emailEl.value.trim().toLowerCase();
         }
 
-        if (Object.keys(data).length) {
-          try { sessionStorage.setItem('_wm_lead', JSON.stringify(data)); } catch (e) {}
-        }
+        trackLead(data);
       });
     });
   }
 
-  // Fire a "Lead" conversion both client-side (Meta Pixel) and server-side
-  // (Conversions API, via capi-relay.php — see that file for setup notes).
-  // Both calls share the same event_id so Meta de-duplicates them into one
-  // event rather than counting the conversion twice. The server-side leg
-  // also reaches Meta even when the browser pixel itself is blocked.
-  // userData keys: em (email), ph (phone E.164), fn (first name), ln (last name).
-  // Meta's fbq() hashes these automatically; capi-relay.php hashes them server-side.
-  function trackLead(userData) {
-    userData = userData || {};
-    var eventId = 'lead-' + Date.now() + '-' + Math.random().toString(36).slice(2);
-
-    if (typeof fbq === 'function') {
-      fbq('track', 'Lead', userData, { eventID: eventId });
-    }
-
-    fetch('/capi-relay.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        event_name: 'Lead',
-        event_id: eventId,
-        url: window.location.href,
-        fbc: getCookie('_fbc'),
-        fbp: getCookie('_fbp'),
-        em: userData.em || null,
-        ph: userData.ph || null,
-        fn: userData.fn || null,
-        ln: userData.ln || null,
-      }),
-    }).catch(function () { /* relay is best-effort — never block the UI on it */ });
+  // Fire a Contact event whenever any phone link (tel:) is clicked.
+  function bindPhoneEvents() {
+    document.querySelectorAll('a[href^="tel:"]').forEach(function (link) {
+      link.addEventListener('click', function () {
+        trackContact();
+      });
+    });
   }
 
-  // Show success banner when redirected back after form submission (?sent=1)
+  // Show success banner when redirected back after form submission (?sent=1).
+  // trackLead already fired on submit — we only show the UI confirmation here.
   function handleFormSuccess() {
     if (window.location.search.indexOf('sent=1') === -1) return;
     var banner = document.getElementById('form-success');
@@ -152,15 +190,6 @@ function initMap() {
       banner.style.display = 'block';
       banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-
-    // Recover PII captured just before the form posted away
-    var userData = {};
-    try {
-      userData = JSON.parse(sessionStorage.getItem('_wm_lead') || '{}');
-      sessionStorage.removeItem('_wm_lead');
-    } catch (e) {}
-
-    trackLead(userData);
     // Clean the URL so a refresh doesn't re-show the banner
     if (window.history && window.history.replaceState) {
       var clean = window.location.pathname + window.location.hash;
@@ -198,7 +227,8 @@ function initMap() {
   document.addEventListener('DOMContentLoaded', function () {
     bindMenu();
     bindFaq();
-    bindFormCapture();
+    bindFormEvents();
+    bindPhoneEvents();
     handleFormSuccess();
     bindMarquee();
     injectStickyCta();
