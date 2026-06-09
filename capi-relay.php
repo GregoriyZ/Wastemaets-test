@@ -64,13 +64,28 @@ $sourceUrl = isset($input['url']) && is_string($input['url'])
     ? substr($input['url'], 0, 2048)
     : (($_SERVER['HTTPS'] ?? '') === 'on' ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? '');
 
+// SHA-256 hash a PII field exactly as Meta's CAPI spec requires:
+// lowercase, trimmed, then hashed. Returns null for empty/invalid input.
+// Phone numbers must already be in E.164 digit-only format (normalised
+// by site.js before being sent here — e.g. 0494013254 → 61494013254).
+function hashField(?string $value): ?string {
+    if ($value === null || $value === '') return null;
+    return hash('sha256', strtolower(trim($value)));
+}
+
 // _fbc / _fbp are the standard Meta browser cookies that dramatically improve
 // event match quality — they're not personal data, just ad-click/browser ids.
+// em / ph / fn / ln are PII captured from the form and must be hashed before
+// sending to Meta's server-side API (unlike fbq() which hashes automatically).
 $userData = array_filter([
     'client_ip_address' => $_SERVER['REMOTE_ADDR'] ?? null,
     'client_user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
     'fbc'               => is_string($input['fbc'] ?? null) ? $input['fbc'] : null,
     'fbp'               => is_string($input['fbp'] ?? null) ? $input['fbp'] : null,
+    'em'                => hashField(is_string($input['em'] ?? null) ? $input['em'] : null),
+    'ph'                => hashField(is_string($input['ph'] ?? null) ? $input['ph'] : null),
+    'fn'                => hashField(is_string($input['fn'] ?? null) ? $input['fn'] : null),
+    'ln'                => hashField(is_string($input['ln'] ?? null) ? $input['ln'] : null),
 ]);
 
 $payload = [

@@ -70,16 +70,61 @@ function initMap() {
     return m ? decodeURIComponent(m[1]) : null;
   }
 
+  // Capture PII from forms just before they POST away to formsubmit.co.
+  // By the time the page redirects back with ?sent=1 the form fields are
+  // gone, so we stash what we need in sessionStorage and read it back in
+  // handleFormSuccess(). This data is used only to improve Meta's event
+  // match quality — it is never stored persistently or sent anywhere other
+  // than Meta via the pixel and CAPI relay.
+  function bindFormCapture() {
+    ['hero-quote-form', 'contact-form'].forEach(function (id) {
+      var form = document.getElementById(id);
+      if (!form) return;
+      form.addEventListener('submit', function () {
+        var data = {};
+
+        // Name → split into fn (first) / ln (last) for advanced matching
+        var nameEl = form.querySelector('input[type="text"][name="name"]');
+        if (nameEl && nameEl.value.trim()) {
+          var parts = nameEl.value.trim().split(/\s+/);
+          data.fn = parts[0].toLowerCase();
+          if (parts.length > 1) data.ln = parts.slice(1).join(' ').toLowerCase();
+        }
+
+        // Phone → digits only, convert Australian 04xx → 614xx (E.164)
+        var phoneEl = form.querySelector('input[type="tel"]');
+        if (phoneEl && phoneEl.value.trim()) {
+          var digits = phoneEl.value.replace(/\D/g, '');
+          if (digits.charAt(0) === '0') digits = '61' + digits.slice(1);
+          if (digits.length >= 9) data.ph = digits;
+        }
+
+        // Email (contact form only — hero form has no email field)
+        var emailEl = form.querySelector('input[type="email"]');
+        if (emailEl && emailEl.value.trim()) {
+          data.em = emailEl.value.trim().toLowerCase();
+        }
+
+        if (Object.keys(data).length) {
+          try { sessionStorage.setItem('_wm_lead', JSON.stringify(data)); } catch (e) {}
+        }
+      });
+    });
+  }
+
   // Fire a "Lead" conversion both client-side (Meta Pixel) and server-side
   // (Conversions API, via capi-relay.php — see that file for setup notes).
   // Both calls share the same event_id so Meta de-duplicates them into one
   // event rather than counting the conversion twice. The server-side leg
   // also reaches Meta even when the browser pixel itself is blocked.
-  function trackLead() {
+  // userData keys: em (email), ph (phone E.164), fn (first name), ln (last name).
+  // Meta's fbq() hashes these automatically; capi-relay.php hashes them server-side.
+  function trackLead(userData) {
+    userData = userData || {};
     var eventId = 'lead-' + Date.now() + '-' + Math.random().toString(36).slice(2);
 
     if (typeof fbq === 'function') {
-      fbq('track', 'Lead', {}, { eventID: eventId });
+      fbq('track', 'Lead', userData, { eventID: eventId });
     }
 
     fetch('/capi-relay.php', {
@@ -91,6 +136,10 @@ function initMap() {
         url: window.location.href,
         fbc: getCookie('_fbc'),
         fbp: getCookie('_fbp'),
+        em: userData.em || null,
+        ph: userData.ph || null,
+        fn: userData.fn || null,
+        ln: userData.ln || null,
       }),
     }).catch(function () { /* relay is best-effort — never block the UI on it */ });
   }
@@ -103,7 +152,15 @@ function initMap() {
       banner.style.display = 'block';
       banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-    trackLead();
+
+    // Recover PII captured just before the form posted away
+    var userData = {};
+    try {
+      userData = JSON.parse(sessionStorage.getItem('_wm_lead') || '{}');
+      sessionStorage.removeItem('_wm_lead');
+    } catch (e) {}
+
+    trackLead(userData);
     // Clean the URL so a refresh doesn't re-show the banner
     if (window.history && window.history.replaceState) {
       var clean = window.location.pathname + window.location.hash;
@@ -141,6 +198,7 @@ function initMap() {
   document.addEventListener('DOMContentLoaded', function () {
     bindMenu();
     bindFaq();
+    bindFormCapture();
     handleFormSuccess();
     bindMarquee();
     injectStickyCta();
